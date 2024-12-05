@@ -1,1 +1,0 @@
-# system_for_blood_donors_doc

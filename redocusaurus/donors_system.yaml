@@ -1,0 +1,343 @@
+openapi: 3.0.3
+info:
+  title: Управление донорскими меропрятиями - API
+  description: API для управления донорскими акциями и участия в них.
+  version: 1.0.0
+paths:
+  /events:
+    get:
+      summary: Получить список всех акций
+      operationId: getEvents
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Фильтрация акций по статусу
+          schema:
+            type: string
+            enum:
+              - active
+              - canceled
+        - name: date
+          in: query
+          required: false
+          description: Фильтрация акций по дате
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Список акций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+  /events/{event_id}:
+    get:
+      summary: Получить детали акции
+      operationId: getEventDetails
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: ID акции
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Детали акции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetails'
+    post:
+      summary: Зарегистрироваться на акцию
+      operationId: registerForEvent
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: ID акции
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '201':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
+  /manage-events:
+    get:
+      summary: Получить список акций организатора
+      operationId: getManagedEvents
+      parameters:
+        - name: organizer_id
+          in: query
+          required: true
+          description: ID организатора
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список акций организатора
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+    post:
+      summary: Создать новую акцию
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Акция успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEventResponse'
+    delete:
+      summary: Удалить акцию
+      operationId: deleteEvent
+      parameters:
+        - name: event_id
+          in: query
+          required: true
+          description: ID акции
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Акция успешно удалена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteEventResponse'
+        '404':
+          description: Акция не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /notifications:
+    get:
+      summary: Получить список уведомлений для пользователя
+      operationId: getNotifications
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID пользователя
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список уведомлений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+  /registrations:
+    get:
+      summary: Получить список регистраций пользователя
+      operationId: getRegistrations
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          description: ID пользователя
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список регистраций пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Registration'
+components:
+  schemas:
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Донорская акция 1
+        date:
+          type: string
+          format: date
+          example: '2024-12-01'
+        status:
+          type: string
+          enum:
+            - active
+            - canceled
+          example: active
+    EventDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Донорская акция
+        description:
+          type: string
+          example: Описание акции...
+        date:
+          type: string
+          format: date
+          example: '2024-12-01'
+        location:
+          type: string
+          example: Москва
+        organizer:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 10
+            name:
+              type: string
+              example: Организация X
+    CreateEventRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Донорская акция в Т-Банке
+        description:
+          type: string
+          example: Описание новой акции....
+        date:
+          type: string
+          format: date
+          example: '2024-12-15'
+        location:
+          type: string
+          example: Санкт-Петербург
+        organizer_id:
+          type: integer
+          example: 10
+    CreateEventResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        status:
+          type: string
+          enum:
+            - success
+            - error
+          example: success
+        message:
+          type: string
+          example: Акция успешно создана.
+    DeleteEventResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - success
+            - error
+          example: success
+        message:
+          type: string
+          example: Акция успешно удалена.
+    RegistrationRequest:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 123
+        additional_info:
+          type: string
+          example: Я донор, 20 лет, последний раз на акции был 3 месяца назад
+    RegistrationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - success
+            - error
+          example: success
+        message:
+          type: string
+          example: Вы успешно зарегистрировались на акцию.
+    Registration:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        event_id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 123
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - declined
+          example: pending
+        timestamp:
+          type: string
+          format: date-time
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        type:
+          type: string
+          enum:
+            - registration
+            - cancellation
+          example: registration
+        message:
+          type: string
+          example: Вы успешно зарегистрировались на акцию '....'.
+        timestamp:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - error
+          example: error
+        message:
+          type: string
+          example: Акция не найдена.
